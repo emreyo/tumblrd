@@ -1,0 +1,72 @@
+#!/bin/bash
+
+source "$HOME/.tud/config.sh"
+
+(($# < 1)) &&
+{
+	echo "usage: tud <blogURL> [size]"
+	exit 1
+}
+
+#echo `curl -I $1 | grep "HTTP/1.1 404 Not Found"`
+http_response=`curl -Is $1 | grep "HTTP/1.1 404 Not Found"`
+
+if [[ -n $http_response ]];
+then
+	echo "not a valid blog url"
+	exit 1
+fi
+
+##########
+
+case "$2" in
+	'best')
+	#640)
+		quality=0
+		curl -s "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[0].url' | xargs wget -nv 1>/dev/null
+		;;
+	640)
+		quality=0
+		curl -s "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[0].url'
+		;;
+	500)
+		quality=1
+		curl -s "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[1].url'
+		;;
+	400)
+		quality=2
+		curl -s "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[2].url'
+		;;
+	250)
+		quality=3
+		curl "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[3].url'
+		;;
+	100)
+		quality=4
+		curl "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[4].url'
+		;;
+	75)
+		quality=5
+		curl "http://api.tumblr.com/v2/blog/$1/posts?api_key=$api_key&type=photo" | jq '.response.posts[].photos[].alt_sizes[5].url'
+		;;
+#	*)
+#		echo -e "invalid size or quality\nusage: tud <blogURL> [quality|size]"
+#		exit 1
+#		;;
+esac
+
+#echo $quality
+#exit 0
+
+##########
+
+#if [[ ($2 -eq "640") || ($2 -eq 500) || ($2 -eq 400) || ($2 -eq 250) || ($2 -eq 100) || ($2 -eq 75) || ($2 = "best") ]];
+#then
+#	curl 'http://api.tumblr.com/v2/blog/peacecorps.tumblr.com/posts?api_key=$api_key&type=photo' | jq '.response.posts[].photos[].alt_sizes[$quality].url'
+#else
+#	echo -e "wrong quality!\nusage: tud <blogURL> [quality|size]"
+#	exit 1
+#fi
+
+#curl 'http://api.tumblr.com/v2/blog/peacecorps.tumblr.com/posts?api_key=$api_key&type=photo' | jq '.response.posts[].photos[].original_size.url'
+
